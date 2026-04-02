@@ -83,6 +83,16 @@
   .hint-box strong { color: #e65100; }
   .btn-save { background: linear-gradient(135deg, #4a148c, #7b1fa2); color: white; }
   .btn-load { background: linear-gradient(135deg, #e65100, #f57c00); color: white; }
+  .btn-reset { background: linear-gradient(135deg, #b71c1c, #c62828); color: white; }
+  .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; padding: 24px; }
+  .confirm-overlay.visible { display: flex; }
+  .confirm-box { background: white; border-radius: 20px; padding: 28px 24px; max-width: 340px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  .confirm-icon { font-size: 52px; margin-bottom: 12px; }
+  .confirm-title { font-size: 18px; font-weight: 800; color: #b71c1c; margin-bottom: 8px; }
+  .confirm-text { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 24px; }
+  .confirm-btns { display: flex; gap: 12px; }
+  .confirm-yes { flex: 1; padding: 14px; background: linear-gradient(135deg, #b71c1c, #c62828); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .confirm-no { flex: 1; padding: 14px; background: #f0f2f5; color: #333; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
 
   .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
   .empty-state .empty-icon { font-size: 60px; margin-bottom: 16px; }
@@ -95,6 +105,8 @@
   .info-key { color: #888; }
   .info-val { font-weight: 700; color: #003366; }
 
+  .autosave-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #002244; color: rgba(255,255,255,0.7); font-size: 11px; text-align: center; padding: 5px; z-index: 998; letter-spacing: 0.3px; }
+  .autosave-bar.saved { color: #4caf50; }
   .notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 9999; animation: slideUp 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); white-space: nowrap; }
   @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
@@ -106,6 +118,7 @@
   <p>Rheinische Post Mediengruppe &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
 
+<div id="autosaveBar" class="autosave-bar">💾 Autosave aktiv – wird alle 30 Sek. gespeichert</div>
 <div class="tabs">
   <div class="tab active" onclick="showPage('erfassen')"><span class="tab-icon">➕</span>Erfassen</div>
   <div class="tab" onclick="showPage('liste')"><span class="tab-icon">📋</span>Liste <span class="badge" id="listeBadge">0</span></div>
@@ -263,6 +276,10 @@
     <button class="export-btn btn-email2" onclick="exportEmail()"><span class="btn-icon">✉️</span><span><span class="btn-title">Option B: Liste im E-Mail-Text</span><span class="btn-sub">Vollständige Tabelle direkt im E-Mail-Body</span></span></button>
   </div>
   <div class="card">
+    <div class="card-title">🔄 Neue Erfassung</div>
+    <button class="export-btn btn-reset" onclick="confirmReset()"><span class="btn-icon">🗑️</span><span><span class="btn-title">Neue Erfassung starten</span><span class="btn-sub">Alle Einträge löschen · Neustart</span></span></button>
+  </div>
+  <div class="card">
     <div class="card-title">💾 Sitzung sichern</div>
     <button class="export-btn btn-save" onclick="saveSession()"><span class="btn-icon">💾</span><span><span class="btn-title">Sitzung speichern (JSON)</span><span class="btn-sub">Als Datei herunterladen</span></span></button>
     <button class="export-btn btn-load" onclick="document.getElementById('loadFile').click()"><span class="btn-icon">📂</span><span><span class="btn-title">Sitzung laden</span><span class="btn-sub">JSON-Datei importieren</span></span></button>
@@ -304,6 +321,8 @@ let selBreite    = null;
 let selMeter     = null;
 let selMaterial  = null;
 let editId       = null;
+let autosaveTimer = null;
+let lastSaveTime  = null;
 
 // ── INIT ──────────────────────────────────────────────
 document.getElementById('datum').textContent =
@@ -333,8 +352,6 @@ function fillSchluchtDD() {
     if (String(s) === String(selSchlucht)) opt.selected = true;
     sel.appendChild(opt);
   });
-  sel.className = 'dd-select' + (selSchlucht ? ' has-value' : '');
-});
   sel.className = 'dd-select' + (selSchlucht ? ' has-value' : '');
 }
 
@@ -504,7 +521,33 @@ function addEntry() {
 }
 
 // ── SAVE / LOAD ───────────────────────────────────────
-function save() { localStorage.setItem('inventur_entries', JSON.stringify(entries)); }
+function save() {
+  localStorage.setItem('inventur_entries', JSON.stringify(entries));
+  lastSaveTime = new Date();
+  updateAutosaveBar('saved');
+}
+
+function updateAutosaveBar(state) {
+  const bar = document.getElementById('autosaveBar');
+  if (!bar) return;
+  if (state === 'saved') {
+    const t = lastSaveTime ? lastSaveTime.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
+    bar.textContent = '✅ Automatisch gespeichert – ' + t + ' · ' + entries.length + ' Einträge';
+    bar.className = 'autosave-bar saved';
+  } else {
+    bar.textContent = '💾 Autosave aktiv – wird alle 30 Sek. gespeichert';
+    bar.className = 'autosave-bar';
+  }
+}
+
+function startAutosave() {
+  autosaveTimer = setInterval(() => {
+    if (entries.length > 0) {
+      save();
+    }
+    updateAutosaveBar(entries.length > 0 ? 'saved' : 'idle');
+  }, 30000);
+}
 function updateBadge() { document.getElementById('listeBadge').textContent = entries.length; }
 
 // ── RENDER LISTE ──────────────────────────────────────
@@ -619,7 +662,18 @@ function exportPDF() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
   const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
-  const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}</style></head><body><h2>📋 Papierrollen Inventur – Rheinische Post</h2><p>Datum: ${new Date().toLocaleDateString('de-DE')} · Einträge: ${entries.length} · Rollen: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table></body></html>`;
+  const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}</style></head><body><h2>📋 Papierrollen Inventur – Rheinische Post</h2><p>Datum: ${new Date().toLocaleDateString('de-DE')} · Einträge: ${entries.length} · Rollen: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table><div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title">Bist du sicher?</div>
+    <div class="confirm-text">Alle erfassten Einträge werden <strong>unwiderruflich gelöscht</strong>!<br><br>Die gesamte Inventurliste wird zurückgesetzt und kann nicht wiederhergestellt werden.</div>
+    <div class="confirm-btns">
+      <button class="confirm-no" onclick="closeConfirm()">❌ Abbrechen</button>
+      <button class="confirm-yes" onclick="doReset()">🗑️ Ja, alles löschen</button>
+    </div>
+  </div>
+</div>
+</body></html>`;
   const w = window.open('','_blank'); w.document.write(html); w.document.close(); w.print();
 }
 function exportEmailMitPDF() {
@@ -661,6 +715,34 @@ function saveSession() {
   const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([JSON.stringify({version:1,datum:new Date().toISOString(),entries},null,2)],{type:'application/json'})),download:`Inventur_${new Date().toISOString().slice(0,10)}.json`});
   a.click(); showNotif('💾 Sitzung gespeichert');
 }
+function confirmReset() {
+  document.getElementById('confirmOverlay').classList.add('visible');
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('visible');
+}
+function doReset() {
+  entries = [];
+  editId = null;
+  selSchlucht = null; selLieferant = null; selGramm = null;
+  selWeisse = null; selBreite = null; selMeter = null; selMaterial = null;
+  localStorage.removeItem('inventur_entries');
+  lastSaveTime = null;
+  closeConfirm();
+  // Formular zurücksetzen
+  document.getElementById('lieferantSelect').value = '';
+  document.getElementById('lieferantSelect').className = 'dd-select';
+  document.getElementById('lieferantFreiWrap').classList.remove('visible');
+  document.getElementById('charge').value = '';
+  document.getElementById('bemerkung').value = '';
+  document.getElementById('anzahl').value = 1;
+  document.getElementById('addBtn').textContent = '✅ Eintrag hinzufügen';
+  fillSchluchtDD(); fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD();
+  renderListe(); updateBadge(); updateExportInfo();
+  updateAutosaveBar('idle');
+  showPage('erfassen');
+  showNotif('🆕 Neue Erfassung gestartet');
+}
 function loadSession(evt) {
   const file = evt.target.files[0]; if (!file) return;
   const r = new FileReader();
@@ -683,6 +765,14 @@ function showNotif(msg) {
   document.body.appendChild(n); setTimeout(()=>n.remove(), 2800);
 }
 
+// Beim Start: gespeicherte Zeit anzeigen
+if (entries.length > 0) {
+  lastSaveTime = new Date();
+  updateAutosaveBar('saved');
+} else {
+  updateAutosaveBar('idle');
+}
+startAutosave();
 init();
 </script>
 </body>
