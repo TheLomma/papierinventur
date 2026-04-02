@@ -3,30 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="RP Inventur">
-<meta name="theme-color" content="#003366">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="icons/favicon.png">
 <title>Papierrollen Inventur</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
   .header { background: linear-gradient(135deg, #003366 0%, #0066cc 100%); color: white; padding: 16px 20px 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
   .header h1 { font-size: 18px; font-weight: 700; }
   .header p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
   .tabs { display: flex; background: #002244; position: sticky; top: 60px; z-index: 99; }
   .tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
   .tab.active { color: #fff; border-bottom-color: #4da6ff; background: rgba(255,255,255,0.08); }
   .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
   .page { display: none; padding: 16px; padding-bottom: 80px; }
   .page.active { display: block; }
+
   .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
   .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #0066cc; margin-bottom: 12px; }
+
   .field-row { margin-bottom: 14px; }
   .field-label { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
   .dd-wrapper { position: relative; margin-bottom: 0; }
   .dd-select { width: 100%; padding: 12px 38px 12px 14px; border: 2px solid #e0e6ef; border-radius: 10px; font-size: 15px; background: #f8fafc; color: #1a1a2e; outline: none; transition: border-color 0.2s; appearance: none; -webkit-appearance: none; cursor: pointer; font-weight: 600; }
   .dd-select:focus { border-color: #0066cc; background: white; }
@@ -34,8 +33,13 @@
   .dd-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #0066cc; font-size: 14px; }
   .dd-extra { margin-top: 8px; display: none; }
   .dd-extra.visible { display: block; }
-  input[type="text"], input[type="number"], textarea { width: 100%; padding: 12px 14px; border: 2px solid #e0e6ef; border-radius: 10px; font-size: 15px; background: #f8fafc; color: #1a1a2e; outline: none; transition: border-color 0.2s; }
+
+  input[type="text"], input[type="number"], textarea {
+    width: 100%; padding: 12px 14px; border: 2px solid #e0e6ef; border-radius: 10px;
+    font-size: 15px; background: #f8fafc; color: #1a1a2e; outline: none; transition: border-color 0.2s;
+  }
   input:focus, textarea:focus { border-color: #0066cc; background: white; }
+
   .counter-row { display: flex; align-items: center; gap: 10px; }
   .counter-btn { width: 52px; height: 52px; border-radius: 14px; border: none; font-size: 28px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
   .counter-btn.minus { background: #ffebee; color: #c62828; }
@@ -45,12 +49,15 @@
   .quick-counts { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .quick-count-btn { flex: 1; padding: 8px 4px; border-radius: 8px; border: 2px solid #e0e6ef; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: #0066cc; min-width: 40px; }
   .quick-count-btn:active { background: #0066cc; color: white; }
+
   .add-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #003366, #0066cc); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(0,102,204,0.3); transition: all 0.2s; margin-top: 4px; }
   .add-btn:active { transform: scale(0.97); }
+
   .summary-bar { background: linear-gradient(135deg, #003366, #0066cc); color: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .summary-item { text-align: center; }
   .summary-num { font-size: 28px; font-weight: 800; }
   .summary-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+
   .entry-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); border-left: 4px solid #0066cc; }
   .entry-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
   .entry-schlucht { font-size: 18px; font-weight: 800; color: #003366; }
@@ -62,6 +69,7 @@
   .btn-edit { background: #e8f0fe; color: #1a73e8; }
   .btn-delete { background: #ffebee; color: #c62828; }
   .btn-dup { background: #e8f5e9; color: #2e7d32; }
+
   .export-btn { width: 100%; padding: 18px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
   .export-btn:active { transform: scale(0.97); }
   .export-btn .btn-icon { font-size: 28px; }
@@ -70,38 +78,53 @@
   .btn-csv { background: linear-gradient(135deg, #2e7d32, #43a047); color: white; }
   .btn-pdf { background: linear-gradient(135deg, #b71c1c, #e53935); color: white; }
   .btn-email { background: linear-gradient(135deg, #1565c0, #1976d2); color: white; }
+  .btn-email2 { background: linear-gradient(135deg, #0d47a1, #1565c0); color: white; }
+  .hint-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 12px; color: #795548; line-height: 1.6; }
+  .hint-box strong { color: #e65100; }
   .btn-save { background: linear-gradient(135deg, #4a148c, #7b1fa2); color: white; }
   .btn-load { background: linear-gradient(135deg, #e65100, #f57c00); color: white; }
+
   .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
   .empty-state .empty-icon { font-size: 60px; margin-bottom: 16px; }
   .empty-state p { font-size: 16px; font-weight: 600; }
+
   .badge { display: inline-flex; align-items: center; justify-content: center; background: #ff4444; color: white; border-radius: 10px; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 4px; }
+
   .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
   .info-row:last-child { border-bottom: none; }
   .info-key { color: #888; }
   .info-val { font-weight: 700; color: #003366; }
+
   .notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 9999; animation: slideUp 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); white-space: nowrap; }
   @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
 </head>
 <body>
+
 <div class="header">
   <h1>📋 Papierrollen Inventur</h1>
-  <p>Rheinische Post Mediengruppe &middot; <span id="datum"></span></p>
+  <p>Rheinische Post Mediengruppe &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
+
 <div class="tabs">
   <div class="tab active" onclick="showPage('erfassen')"><span class="tab-icon">➕</span>Erfassen</div>
   <div class="tab" onclick="showPage('liste')"><span class="tab-icon">📋</span>Liste <span class="badge" id="listeBadge">0</span></div>
   <div class="tab" onclick="showPage('export')"><span class="tab-icon">📤</span>Export</div>
 </div>
+
+<!-- ERFASSEN -->
 <div class="page active" id="page-erfassen">
+
   <div class="card">
     <div class="card-title">📍 Schlucht / Lagerbereich</div>
     <div class="dd-wrapper">
-      <select class="dd-select" id="schluchtSelect" onchange="onSchluchtSelect()"><option value="">– Schlucht wählen –</option></select>
+      <select class="dd-select" id="schluchtSelect" onchange="onSchluchtSelect()">
+        <option value="">– Schlucht wählen –</option>
+      </select>
       <span class="dd-arrow">▼</span>
     </div>
   </div>
+
   <div class="card">
     <div class="card-title">🏭 Lieferant / Werk</div>
     <div class="dd-wrapper">
@@ -117,52 +140,86 @@
       </select>
       <span class="dd-arrow">▼</span>
     </div>
-    <div class="dd-extra" id="lieferantFreiWrap"><input type="text" id="lieferantFrei" placeholder="Anderen Lieferant eingeben…"></div>
+    <div class="dd-extra" id="lieferantFreiWrap">
+      <input type="text" id="lieferantFrei" placeholder="Anderen Lieferant eingeben…">
+    </div>
   </div>
+
   <div class="card">
     <div class="card-title">📄 Rollenspezifikation</div>
+
     <div class="field-row">
       <div class="field-label">Grammatur (g/m²)</div>
       <div class="dd-wrapper">
-        <select class="dd-select" id="grammSelect" onchange="onGrammSelect()"><option value="">– Grammatur wählen –</option></select>
+        <select class="dd-select" id="grammSelect" onchange="onGrammSelect()">
+          <option value="">– Grammatur wählen –</option>
+        </select>
         <span class="dd-arrow">▼</span>
       </div>
-      <div class="dd-extra" id="grammFreiWrap"><input type="number" id="grammFrei" placeholder="Andere Grammatur (g/m²)…"></div>
+      <div class="dd-extra" id="grammFreiWrap">
+        <input type="number" id="grammFrei" placeholder="Andere Grammatur (g/m²)…">
+      </div>
     </div>
+
     <div class="field-row">
       <div class="field-label">Weiße / Helligkeit</div>
       <div class="dd-wrapper">
-        <select class="dd-select" id="weisseSelect" onchange="onWeisseSelect()"><option value="">– Weiße wählen –</option></select>
+        <select class="dd-select" id="weisseSelect" onchange="onWeisseSelect()">
+          <option value="">– Weiße wählen –</option>
+        </select>
         <span class="dd-arrow">▼</span>
       </div>
     </div>
+
     <div class="field-row">
       <div class="field-label">Breite (mm)</div>
       <div class="dd-wrapper">
-        <select class="dd-select" id="breiteSelect" onchange="onBreiteSelect()"><option value="">– Breite wählen –</option></select>
+        <select class="dd-select" id="breiteSelect" onchange="onBreiteSelect()">
+          <option value="">– Breite wählen –</option>
+        </select>
         <span class="dd-arrow">▼</span>
       </div>
-      <div class="dd-extra" id="breiteFreiWrap"><input type="number" id="breiteFrei" placeholder="Andere Breite (mm)…"></div>
+      <div class="dd-extra" id="breiteFreiWrap">
+        <input type="number" id="breiteFrei" placeholder="Andere Breite (mm)…">
+      </div>
     </div>
+
     <div class="field-row">
       <div class="field-label">Material-Nr.</div>
       <div class="dd-wrapper">
-        <select class="dd-select" id="materialSelect" onchange="onMaterialSelect()"><option value="">– Material-Nr. wählen –</option></select>
+        <select class="dd-select" id="materialSelect" onchange="onMaterialSelect()">
+          <option value="">– Material-Nr. wählen –</option>
+        </select>
         <span class="dd-arrow">▼</span>
       </div>
-      <div class="dd-extra" id="materialFreiWrap"><input type="text" id="materialNr" placeholder="Andere Material-Nr.…"></div>
+      <div class="dd-extra" id="materialFreiWrap">
+        <input type="text" id="materialNr" placeholder="Andere Material-Nr.…">
+      </div>
     </div>
+
     <div class="field-row">
       <div class="field-label">Meter / Rolle</div>
       <div class="dd-wrapper">
-        <select class="dd-select" id="meterSelect" onchange="onMeterSelect()"><option value="">– Meter wählen –</option></select>
+        <select class="dd-select" id="meterSelect" onchange="onMeterSelect()">
+          <option value="">– Meter wählen –</option>
+        </select>
         <span class="dd-arrow">▼</span>
       </div>
-      <div class="dd-extra" id="meterFreiWrap"><input type="number" id="meterFrei" placeholder="Andere Meterzahl…"></div>
+      <div class="dd-extra" id="meterFreiWrap">
+        <input type="number" id="meterFrei" placeholder="Andere Meterzahl…">
+      </div>
     </div>
-    <div class="field-row"><div class="field-label">Charge / Partie</div><input type="text" id="charge" placeholder="z.B. ABC-2026-001"></div>
-    <div class="field-row"><div class="field-label">Bemerkung</div><input type="text" id="bemerkung" placeholder="Optional…"></div>
+
+    <div class="field-row">
+      <div class="field-label">Charge / Partie</div>
+      <input type="text" id="charge" placeholder="z.B. ABC-2026-001">
+    </div>
+    <div class="field-row">
+      <div class="field-label">Bemerkung</div>
+      <input type="text" id="bemerkung" placeholder="Optional…">
+    </div>
   </div>
+
   <div class="card">
     <div class="card-title">🔢 Anzahl Rollen</div>
     <div class="counter-row">
@@ -179,8 +236,12 @@
       <button class="quick-count-btn" onclick="setCount(30)">30</button>
     </div>
   </div>
+
   <button class="add-btn" id="addBtn" onclick="addEntry()">✅ Eintrag hinzufügen</button>
+  <div style="height:16px;"></div>
 </div>
+
+<!-- LISTE -->
 <div class="page" id="page-liste">
   <div class="summary-bar">
     <div class="summary-item"><div class="summary-num" id="sumRollen">0</div><div class="summary-label">Rollen gesamt</div></div>
@@ -190,12 +251,16 @@
   </div>
   <div id="listeContainer"></div>
 </div>
+
+<!-- EXPORT -->
 <div class="page" id="page-export">
   <div class="card">
     <div class="card-title">📤 Daten exportieren</div>
     <button class="export-btn btn-csv" onclick="exportCSV()"><span class="btn-icon">📊</span><span><span class="btn-title">CSV herunterladen</span><span class="btn-sub">Excel-kompatibel, UTF-8</span></span></button>
     <button class="export-btn btn-pdf" onclick="exportPDF()"><span class="btn-icon">🖨️</span><span><span class="btn-title">Drucken / PDF</span><span class="btn-sub">Saubere Tabelle zum Drucken</span></span></button>
-    <button class="export-btn btn-email" onclick="exportEmail()"><span class="btn-icon">📧</span><span><span class="btn-title">Per E-Mail senden</span><span class="btn-sub">Öffnet E-Mail-Programm</span></span></button>
+    <div class="hint-box">📎 <strong>Hinweis Anhang:</strong> Browser können aus Sicherheitsgründen keine Dateien automatisch als E-Mail-Anhang einfügen. Wähle Option A oder B:</div>
+    <button class="export-btn btn-email" onclick="exportEmailMitPDF()"><span class="btn-icon">📧</span><span><span class="btn-title">Option A: PDF + E-Mail öffnen</span><span class="btn-sub">PDF wird heruntergeladen · E-Mail öffnet sich · 1× Anhang ziehen</span></span></button>
+    <button class="export-btn btn-email2" onclick="exportEmail()"><span class="btn-icon">✉️</span><span><span class="btn-title">Option B: Liste im E-Mail-Text</span><span class="btn-sub">Vollständige Tabelle direkt im E-Mail-Body</span></span></button>
   </div>
   <div class="card">
     <div class="card-title">💾 Sitzung sichern</div>
@@ -211,25 +276,52 @@
     <div class="info-row"><span class="info-key">Schluchten erfasst</span><span class="info-val" id="infoSchluchten">-</span></div>
   </div>
 </div>
+
 <script>
 const SCHLUCHTEN = [1,2,3,4,5,6,100,7,8,9,10,11,12,13,14,101,15,16,17,18,19,20,21,22,102,23,24,25,26,27,28,29,30,103,31,32,33,34,35,36,37,38,99,39,40];
+
 const LIEFERANTEN = [
-  { name:'Schongau', gramm:[55], weisse:[80], breite:[700,1050,1400], material:['20558011','20558013','20558015'], meter:[7000,7350] },
-  { name:'Langerbrug', gramm:[49], weisse:[59], breite:[700], material:['20495915'], meter:[7000] },
-  { name:'Golbey', gramm:[42], weisse:[59], breite:[1050,1225,1400], material:['20425911','20425912','20425913'], meter:[7000,7350] },
-  { name:'Hylte', gramm:[43], weisse:[59], breite:[1400], material:['20435911'], meter:[7000] },
-  { name:'Eltmann', gramm:[43], weisse:[59], breite:[1400], material:['20435911'], meter:[7000] },
-  { name:'Perlen', gramm:[42], weisse:[59], breite:[1400], material:['20425911'], meter:[7000] },
+  { name:'Schongau',    gramm:[55],     weisse:[80], breite:[700,1050,1400],  material:['20558011','20558013','20558015'], meter:[7000,7350] },
+  { name:'Langerbrug',  gramm:[49],     weisse:[59], breite:[700],            material:['20495915'],                      meter:[7000] },
+  { name:'Golbey',      gramm:[42],     weisse:[59], breite:[1050,1225,1400], material:['20425911','20425912','20425913'], meter:[7000,7350] },
+  { name:'Hylte',       gramm:[43],     weisse:[59], breite:[1400],           material:['20435911'],                      meter:[7000] },
+  { name:'Eltmann',     gramm:[43],     weisse:[59], breite:[1400],           material:['20435911'],                      meter:[7000] },
+  { name:'Perlen',      gramm:[42],     weisse:[59], breite:[1400],           material:['20425911'],                      meter:[7000] },
 ];
-const ALL_GRAMM = [42,43,49,55,99], ALL_WEISSE = [59,80], ALL_BREITE = [700,1050,1225,1400], ALL_METER = [6300,7000,7350];
-const ALL_MATERIAL = ['20425911','20425912','20425913','20435911','20495915','20558011','20558013','20558015'];
+
+const ALL_GRAMM     = [42,43,49,55,99];
+const ALL_WEISSE    = [59,80];
+const ALL_BREITE    = [700,1050,1225,1400];
+const ALL_METER     = [6300,7000,7350];
+const ALL_MATERIAL  = ['20425911','20425912','20425913','20435911','20495915','20558011','20558013','20558015'];
+
 let entries = JSON.parse(localStorage.getItem('inventur_entries') || '[]');
-let selSchlucht=null, selLieferant=null, selGramm=null, selWeisse=null, selBreite=null, selMeter=null, selMaterial=null, editId=null;
+let selSchlucht  = null;
+let selLieferant = null;
+let selGramm     = null;
+let selWeisse    = null;
+let selBreite    = null;
+let selMeter     = null;
+let selMaterial  = null;
+let editId       = null;
 
-document.getElementById('datum').textContent = new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
+// ── INIT ──────────────────────────────────────────────
+document.getElementById('datum').textContent =
+  new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
 
-function init() { fillSchluchtDD(); fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD(); renderListe(); updateBadge(); updateExportInfo(); }
+function init() {
+  fillSchluchtDD();
+  fillGrammDD();
+  fillWeisseDD();
+  fillBreiteDD();
+  fillMeterDD();
+  fillMaterialDD();
+  renderListe();
+  updateBadge();
+  updateExportInfo();
+}
 
+// ── SCHLUCHT DROPDOWN ─────────────────────────────────
 function fillSchluchtDD() {
   const sel = document.getElementById('schluchtSelect');
   sel.innerHTML = '<option value="">– Schlucht wählen –</option>';
@@ -242,127 +334,319 @@ function fillSchluchtDD() {
     sel.appendChild(opt);
   });
   sel.className = 'dd-select' + (selSchlucht ? ' has-value' : '');
+});
+  sel.className = 'dd-select' + (selSchlucht ? ' has-value' : '');
 }
 
-function onSchluchtSelect() { const v = document.getElementById('schluchtSelect').value; selSchlucht = v ? Number(v) : null; document.getElementById('schluchtSelect').className = 'dd-select' + (v ? ' has-value' : ''); }
+function onSchluchtSelect() {
+  const v = document.getElementById('schluchtSelect').value;
+  selSchlucht = v ? Number(v) : null;
+  document.getElementById('schluchtSelect').className = 'dd-select' + (v ? ' has-value' : '');
+}
 
+// ── LIEFERANT DROPDOWN ────────────────────────────────
 function onLieferantSelect() {
   const v = document.getElementById('lieferantSelect').value;
   const wrap = document.getElementById('lieferantFreiWrap');
-  if (v === '__andere__') { wrap.classList.add('visible'); selLieferant = null; document.getElementById('lieferantSelect').className = 'dd-select'; }
-  else { wrap.classList.remove('visible'); selLieferant = v || null; document.getElementById('lieferantSelect').className = 'dd-select' + (v ? ' has-value' : ''); applyLieferantDefaults(v); }
+  if (v === '__andere__') {
+    wrap.classList.add('visible');
+    selLieferant = null;
+    document.getElementById('lieferantSelect').className = 'dd-select';
+  } else {
+    wrap.classList.remove('visible');
+    selLieferant = v || null;
+    document.getElementById('lieferantSelect').className = 'dd-select' + (v ? ' has-value' : '');
+    applyLieferantDefaults(v);
+  }
 }
 
 function applyLieferantDefaults(name) {
-  const l = LIEFERANTEN.find(x => x.name === name); if (!l) return;
-  selGramm = l.gramm.length === 1 ? l.gramm[0] : null;
-  selWeisse = l.weisse.length === 1 ? l.weisse[0] : null;
-  selBreite = l.breite.length === 1 ? l.breite[0] : null;
-  selMeter = l.meter.length === 1 ? l.meter[0] : null;
+  const l = LIEFERANTEN.find(x => x.name === name);
+  if (!l) return;
+  selGramm    = l.gramm.length    === 1 ? l.gramm[0]    : null;
+  selWeisse   = l.weisse.length   === 1 ? l.weisse[0]   : null;
+  selBreite   = l.breite.length   === 1 ? l.breite[0]   : null;
+  selMeter    = l.meter.length    === 1 ? l.meter[0]    : null;
   selMaterial = l.material.length === 1 ? l.material[0] : null;
-  ['grammFreiWrap','breiteFreiWrap','meterFreiWrap','materialFreiWrap'].forEach(id => document.getElementById(id).classList.remove('visible'));
-  fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD();
+  document.getElementById('grammFreiWrap').classList.remove('visible');
+  document.getElementById('breiteFreiWrap').classList.remove('visible');
+  document.getElementById('meterFreiWrap').classList.remove('visible');
+  document.getElementById('materialFreiWrap').classList.remove('visible');
+  fillGrammDD();
+  fillWeisseDD();
+  fillBreiteDD();
+  fillMeterDD();
+  fillMaterialDD();
 }
 
+// ── HELPER: fill a dropdown ───────────────────────────
 function fillDD(id, options, currentVal, addAndere) {
   const sel = document.getElementById(id);
   while (sel.options.length > 1) sel.remove(1);
-  options.forEach(o => { const opt = new Option(String(o), String(o)); if (String(o) === String(currentVal)) opt.selected = true; sel.appendChild(opt); });
-  if (addAndere) sel.appendChild(new Option('✏️ Andere…', '__andere__'));
+  options.forEach(o => {
+    const opt = new Option(String(o), String(o));
+    if (String(o) === String(currentVal)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (addAndere) {
+    const a = new Option('✏️ Andere…', '__andere__');
+    sel.appendChild(a);
+  }
   sel.className = 'dd-select' + (currentVal ? ' has-value' : '');
 }
 
-function optsByLieferant(field, fallback) { const l = LIEFERANTEN.find(x => x.name === selLieferant); return l ? l[field] : fallback; }
-function fillGrammDD() { fillDD('grammSelect', optsByLieferant('gramm', ALL_GRAMM), selGramm, true); }
-function fillWeisseDD() { fillDD('weisseSelect', optsByLieferant('weisse', ALL_WEISSE), selWeisse, false); }
-function fillBreiteDD() { fillDD('breiteSelect', optsByLieferant('breite', ALL_BREITE), selBreite, true); }
-function fillMeterDD() { fillDD('meterSelect', optsByLieferant('meter', ALL_METER), selMeter, true); }
-function fillMaterialDD() { fillDD('materialSelect', optsByLieferant('material', ALL_MATERIAL), selMaterial, true); }
-
-function onGrammSelect() { const v = document.getElementById('grammSelect').value; const wrap = document.getElementById('grammFreiWrap'); if (v === '__andere__') { wrap.classList.add('visible'); selGramm = null; } else { wrap.classList.remove('visible'); selGramm = v ? Number(v) : null; } document.getElementById('grammSelect').className = 'dd-select' + (selGramm ? ' has-value' : ''); }
-function onWeisseSelect() { const v = document.getElementById('weisseSelect').value; selWeisse = v ? Number(v) : null; document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse ? ' has-value' : ''); }
-function onBreiteSelect() { const v = document.getElementById('breiteSelect').value; const wrap = document.getElementById('breiteFreiWrap'); if (v === '__andere__') { wrap.classList.add('visible'); selBreite = null; } else { wrap.classList.remove('visible'); selBreite = v ? Number(v) : null; } document.getElementById('breiteSelect').className = 'dd-select' + (selBreite ? ' has-value' : ''); }
-function onMeterSelect() { const v = document.getElementById('meterSelect').value; const wrap = document.getElementById('meterFreiWrap'); if (v === '__andere__') { wrap.classList.add('visible'); selMeter = null; } else { wrap.classList.remove('visible'); selMeter = v ? Number(v) : null; } document.getElementById('meterSelect').className = 'dd-select' + (selMeter ? ' has-value' : ''); }
-function onMaterialSelect() { const v = document.getElementById('materialSelect').value; const wrap = document.getElementById('materialFreiWrap'); if (v === '__andere__') { wrap.classList.add('visible'); selMaterial = null; } else { wrap.classList.remove('visible'); selMaterial = v || null; document.getElementById('materialNr').value = ''; } document.getElementById('materialSelect').className = 'dd-select' + (selMaterial ? ' has-value' : ''); }
-
-function changeCount(d) { const inp = document.getElementById('anzahl'); inp.value = Math.max(0, (parseInt(inp.value) || 0) + d); }
-function setCount(n) { document.getElementById('anzahl').value = n; }
-
-function getLieferantName() { const v = document.getElementById('lieferantSelect').value; if (v === '__andere__') return document.getElementById('lieferantFrei').value.trim(); return v || ''; }
-function getGramm() { return document.getElementById('grammFrei').value || selGramm || ''; }
-function getBreite() { return document.getElementById('breiteFrei').value || selBreite || ''; }
-function getMeter() { return document.getElementById('meterFrei').value || selMeter || ''; }
-function getMaterial() { return document.getElementById('materialNr').value.trim() || selMaterial || ''; }
-
-function addEntry() {
-  if (!selSchlucht) { showNotif('⚠️ Bitte Schlucht auswählen'); return; }
-  const lieferant = getLieferantName(); if (!lieferant) { showNotif('⚠️ Bitte Lieferant angeben'); return; }
-  const anzahl = parseInt(document.getElementById('anzahl').value) || 0; if (anzahl <= 0) { showNotif('⚠️ Anzahl muss > 0 sein'); return; }
-  const entry = { id: editId || Date.now(), schlucht: selSchlucht, lieferant, gramm: getGramm(), weisse: selWeisse || '', breite: getBreite(), material: getMaterial(), meter: getMeter(), charge: document.getElementById('charge').value.trim(), bemerkung: document.getElementById('bemerkung').value.trim(), anzahl, zeit: new Date().toISOString() };
-  if (editId) { const idx = entries.findIndex(e => e.id === editId); if (idx !== -1) entries[idx] = entry; editId = null; document.getElementById('addBtn').textContent = '✅ Eintrag hinzufügen'; showNotif('✏️ Eintrag aktualisiert'); }
-  else { entries.push(entry); showNotif('✅ Eintrag gespeichert'); }
-  save(); document.getElementById('charge').value = ''; document.getElementById('bemerkung').value = ''; document.getElementById('anzahl').value = 1;
-  fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo();
+function optsByLieferant(field, fallback) {
+  const l = LIEFERANTEN.find(x => x.name === selLieferant);
+  return l ? l[field] : fallback;
 }
 
+function fillGrammDD()    { fillDD('grammSelect',    optsByLieferant('gramm',    ALL_GRAMM),    selGramm,    true); }
+function fillWeisseDD()   { fillDD('weisseSelect',   optsByLieferant('weisse',   ALL_WEISSE),   selWeisse,   false); }
+function fillBreiteDD()   { fillDD('breiteSelect',   optsByLieferant('breite',   ALL_BREITE),   selBreite,   true); }
+function fillMeterDD()    { fillDD('meterSelect',    optsByLieferant('meter',    ALL_METER),    selMeter,    true); }
+function fillMaterialDD() { fillDD('materialSelect', optsByLieferant('material', ALL_MATERIAL), selMaterial, true); }
+
+// ── DROPDOWN CHANGE HANDLERS ──────────────────────────
+function onGrammSelect() {
+  const v = document.getElementById('grammSelect').value;
+  const wrap = document.getElementById('grammFreiWrap');
+  if (v === '__andere__') { wrap.classList.add('visible'); selGramm = null; }
+  else { wrap.classList.remove('visible'); selGramm = v ? Number(v) : null; }
+  document.getElementById('grammSelect').className = 'dd-select' + (selGramm ? ' has-value' : '');
+}
+function onWeisseSelect() {
+  const v = document.getElementById('weisseSelect').value;
+  selWeisse = v ? Number(v) : null;
+  document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse ? ' has-value' : '');
+}
+function onBreiteSelect() {
+  const v = document.getElementById('breiteSelect').value;
+  const wrap = document.getElementById('breiteFreiWrap');
+  if (v === '__andere__') { wrap.classList.add('visible'); selBreite = null; }
+  else { wrap.classList.remove('visible'); selBreite = v ? Number(v) : null; }
+  document.getElementById('breiteSelect').className = 'dd-select' + (selBreite ? ' has-value' : '');
+}
+function onMeterSelect() {
+  const v = document.getElementById('meterSelect').value;
+  const wrap = document.getElementById('meterFreiWrap');
+  if (v === '__andere__') { wrap.classList.add('visible'); selMeter = null; }
+  else { wrap.classList.remove('visible'); selMeter = v ? Number(v) : null; }
+  document.getElementById('meterSelect').className = 'dd-select' + (selMeter ? ' has-value' : '');
+}
+function onMaterialSelect() {
+  const v = document.getElementById('materialSelect').value;
+  const wrap = document.getElementById('materialFreiWrap');
+  if (v === '__andere__') { wrap.classList.add('visible'); selMaterial = null; }
+  else { wrap.classList.remove('visible'); selMaterial = v || null; document.getElementById('materialNr').value = ''; }
+  document.getElementById('materialSelect').className = 'dd-select' + (selMaterial ? ' has-value' : '');
+}
+
+// ── COUNTER ───────────────────────────────────────────
+function changeCount(d) {
+  const inp = document.getElementById('anzahl');
+  inp.value = Math.max(0, (parseInt(inp.value) || 0) + d);
+}
+function setCount(n) { document.getElementById('anzahl').value = n; }
+
+// ── GETTERS ───────────────────────────────────────────
+function getLieferantName() {
+  const v = document.getElementById('lieferantSelect').value;
+  if (v === '__andere__') return document.getElementById('lieferantFrei').value.trim();
+  return v || '';
+}
+function getGramm()    { return document.getElementById('grammFrei').value    || selGramm    || ''; }
+function getBreite()   { return document.getElementById('breiteFrei').value   || selBreite   || ''; }
+function getMeter()    { return document.getElementById('meterFrei').value     || selMeter    || ''; }
+function getMaterial() { return document.getElementById('materialNr').value.trim() || selMaterial || ''; }
+
+// ── ADD / EDIT ENTRY ──────────────────────────────────
+function addEntry() {
+  if (!selSchlucht)          { showNotif('⚠️ Bitte Schlucht auswählen');  return; }
+  const lieferant = getLieferantName();
+  if (!lieferant)            { showNotif('⚠️ Bitte Lieferant angeben');   return; }
+  const anzahl = parseInt(document.getElementById('anzahl').value) || 0;
+  if (anzahl <= 0)           { showNotif('⚠️ Anzahl muss > 0 sein');      return; }
+
+  const entry = {
+    id:        editId || Date.now(),
+    schlucht:  selSchlucht,
+    lieferant: lieferant,
+    gramm:     getGramm(),
+    weisse:    selWeisse || '',
+    breite:    getBreite(),
+    material:  getMaterial(),
+    meter:     getMeter(),
+    charge:    document.getElementById('charge').value.trim(),
+    bemerkung: document.getElementById('bemerkung').value.trim(),
+    anzahl:    anzahl,
+    zeit:      new Date().toISOString(),
+  };
+
+  if (editId) {
+    const idx = entries.findIndex(e => e.id === editId);
+    if (idx !== -1) entries[idx] = entry;
+    editId = null;
+    document.getElementById('addBtn').textContent = '✅ Eintrag hinzufügen';
+    showNotif('✏️ Eintrag aktualisiert');
+  } else {
+    entries.push(entry);
+    showNotif('✅ Eintrag gespeichert');
+  }
+
+  save();
+  document.getElementById('charge').value = '';
+  document.getElementById('bemerkung').value = '';
+  document.getElementById('anzahl').value = 1;
+  fillSchluchtDD();
+  renderListe();
+  updateBadge();
+  updateExportInfo();
+}
+
+// ── SAVE / LOAD ───────────────────────────────────────
 function save() { localStorage.setItem('inventur_entries', JSON.stringify(entries)); }
 function updateBadge() { document.getElementById('listeBadge').textContent = entries.length; }
 
+// ── RENDER LISTE ──────────────────────────────────────
 function renderListe() {
   const cont = document.getElementById('listeContainer');
   const total = entries.reduce((s,e) => s + e.anzahl, 0);
   const schlSet = new Set(entries.map(e => e.schlucht));
   const liefSet = new Set(entries.map(e => e.lieferant));
-  document.getElementById('sumRollen').textContent = total;
-  document.getElementById('sumEintraege').textContent = entries.length;
+  document.getElementById('sumRollen').textContent     = total;
+  document.getElementById('sumEintraege').textContent  = entries.length;
   document.getElementById('sumSchluchten').textContent = schlSet.size;
-  document.getElementById('sumLieferanten').textContent = liefSet.size;
-  if (!entries.length) { cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>Noch keine Einträge</p></div>'; return; }
+  document.getElementById('sumLieferanten').textContent= liefSet.size;
+
+  if (!entries.length) {
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>Noch keine Einträge</p></div>';
+    return;
+  }
   const sorted = [...entries].sort((a,b) => a.schlucht - b.schlucht);
-  cont.innerHTML = sorted.map(e => `<div class="entry-card"><div class="entry-card-header"><div><div style="font-size:11px;color:#888;text-transform:uppercase;">Schlucht</div><div class="entry-schlucht">${e.schlucht}</div></div><div style="text-align:right;"><div class="entry-supplier">${e.lieferant}</div><div class="entry-count">${e.anzahl} Rollen</div></div></div><div class="entry-details">${e.gramm ? '⚖️ '+e.gramm+' g/m²&nbsp;&nbsp;' : ''}${e.weisse ? '☀️ '+e.weisse+' ISO&nbsp;&nbsp;' : ''}${e.breite ? '📏 '+e.breite+' mm&nbsp;&nbsp;' : ''}${e.meter ? '📜 '+Number(e.meter).toLocaleString('de-DE')+' m&nbsp;&nbsp;' : ''}<br>${e.material ? '🔢 '+e.material+'&nbsp;&nbsp;' : ''}${e.charge ? '🏷️ '+e.charge+'&nbsp;&nbsp;' : ''}${e.bemerkung ? '💬 '+e.bemerkung : ''}</div><div class="entry-actions"><button class="entry-action-btn btn-edit" onclick="editEntry(${e.id})">✏️ Bearbeiten</button><button class="entry-action-btn btn-dup" onclick="dupEntry(${e.id})">📋 Kopieren</button><button class="entry-action-btn btn-delete" onclick="deleteEntry(${e.id})">🗑️ Löschen</button></div></div>`).join('');
+  cont.innerHTML = sorted.map(e => `
+    <div class="entry-card">
+      <div class="entry-card-header">
+        <div><div style="font-size:11px;color:#888;text-transform:uppercase;">Schlucht</div>
+          <div class="entry-schlucht">${e.schlucht}</div></div>
+        <div style="text-align:right;">
+          <div class="entry-supplier">${e.lieferant}</div>
+          <div class="entry-count">${e.anzahl} Rollen</div>
+        </div>
+      </div>
+      <div class="entry-details">
+        ${e.gramm   ? '⚖️ '+e.gramm+' g/m²&nbsp;&nbsp;' : ''}
+        ${e.weisse  ? '☀️ '+e.weisse+' ISO&nbsp;&nbsp;'  : ''}
+        ${e.breite  ? '📏 '+e.breite+' mm&nbsp;&nbsp;'   : ''}
+        ${e.meter   ? '📜 '+Number(e.meter).toLocaleString('de-DE')+' m&nbsp;&nbsp;' : ''}<br>
+        ${e.material ? '🔢 '+e.material+'&nbsp;&nbsp;' : ''}
+        ${e.charge   ? '🏷️ '+e.charge+'&nbsp;&nbsp;'   : ''}
+        ${e.bemerkung? '💬 '+e.bemerkung               : ''}
+      </div>
+      <div class="entry-actions">
+        <button class="entry-action-btn btn-edit"   onclick="editEntry(${e.id})">✏️ Bearbeiten</button>
+        <button class="entry-action-btn btn-dup"    onclick="dupEntry(${e.id})">📋 Kopieren</button>
+        <button class="entry-action-btn btn-delete" onclick="deleteEntry(${e.id})">🗑️ Löschen</button>
+      </div>
+    </div>`).join('');
 }
 
-function deleteEntry(id) { if (!confirm('Eintrag wirklich löschen?')) return; entries = entries.filter(e => e.id !== id); save(); fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo(); showNotif('🗑️ Gelöscht'); }
-function dupEntry(id) { const e = entries.find(x => x.id === id); if (!e) return; entries.push({...e, id: Date.now(), zeit: new Date().toISOString()}); save(); fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo(); showNotif('📋 Kopiert'); }
+function deleteEntry(id) {
+  if (!confirm('Eintrag wirklich löschen?')) return;
+  entries = entries.filter(e => e.id !== id);
+  save(); fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo();
+  showNotif('🗑️ Gelöscht');
+}
+function dupEntry(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  entries.push({...e, id: Date.now(), zeit: new Date().toISOString()});
+  save(); fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo();
+  showNotif('📋 Kopiert');
+}
 function editEntry(id) {
-  const e = entries.find(x => x.id === id); if (!e) return;
-  editId = id; selSchlucht = e.schlucht; selLieferant = e.lieferant;
-  selGramm = e.gramm ? Number(e.gramm) : null; selWeisse = e.weisse ? Number(e.weisse) : null;
-  selBreite = e.breite ? Number(e.breite) : null; selMeter = e.meter ? Number(e.meter) : null; selMaterial = e.material || null;
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  editId = id;
+  selSchlucht  = e.schlucht;
+  selLieferant = e.lieferant;
+  selGramm     = e.gramm    ? Number(e.gramm)    : null;
+  selWeisse    = e.weisse   ? Number(e.weisse)   : null;
+  selBreite    = e.breite   ? Number(e.breite)   : null;
+  selMeter     = e.meter    ? Number(e.meter)    : null;
+  selMaterial  = e.material || null;
   const knownLieferant = LIEFERANTEN.find(l => l.name === e.lieferant);
   const liefSel = document.getElementById('lieferantSelect');
-  if (knownLieferant) { liefSel.value = e.lieferant; liefSel.className = 'dd-select has-value'; document.getElementById('lieferantFreiWrap').classList.remove('visible'); }
-  else { liefSel.value = '__andere__'; document.getElementById('lieferantFreiWrap').classList.add('visible'); document.getElementById('lieferantFrei').value = e.lieferant; }
-  document.getElementById('charge').value = e.charge || ''; document.getElementById('bemerkung').value = e.bemerkung || ''; document.getElementById('anzahl').value = e.anzahl;
+  if (knownLieferant) {
+    liefSel.value = e.lieferant;
+    liefSel.className = 'dd-select has-value';
+    document.getElementById('lieferantFreiWrap').classList.remove('visible');
+  } else {
+    liefSel.value = '__andere__';
+    document.getElementById('lieferantFreiWrap').classList.add('visible');
+    document.getElementById('lieferantFrei').value = e.lieferant;
+  }
+  document.getElementById('charge').value    = e.charge    || '';
+  document.getElementById('bemerkung').value = e.bemerkung || '';
+  document.getElementById('anzahl').value    = e.anzahl;
   document.getElementById('addBtn').textContent = '💾 Eintrag aktualisieren';
   fillSchluchtDD(); fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD();
-  showPage('erfassen'); window.scrollTo(0,0); showNotif('✏️ Bearbeiten-Modus aktiv');
+  showPage('erfassen');
+  window.scrollTo(0,0);
+  showNotif('✏️ Bearbeiten-Modus aktiv');
 }
 
+// ── EXPORT INFO ───────────────────────────────────────
 function updateExportInfo() {
   const total = entries.reduce((s,e) => s + e.anzahl, 0);
   const schlSet = new Set(entries.map(e => e.schlucht));
-  document.getElementById('infoDate').textContent = new Date().toLocaleDateString('de-DE');
-  document.getElementById('infoRollen').textContent = total;
+  document.getElementById('infoDate').textContent      = new Date().toLocaleDateString('de-DE');
+  document.getElementById('infoRollen').textContent    = total;
   document.getElementById('infoEintraege').textContent = entries.length;
-  document.getElementById('infoSchluchten').textContent = [...schlSet].sort((a,b)=>a-b).join(', ') || '-';
+  document.getElementById('infoSchluchten').textContent= [...schlSet].sort((a,b)=>a-b).join(', ') || '-';
 }
 
+// ── EXPORT ───────────────────────────────────────────
 function exportCSV() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
   const header = ['Schlucht','Lieferant','Grammatur','Weiße','Breite (mm)','Material-Nr.','Meter/Rolle','Charge','Anzahl Rollen','Bemerkung','Zeit'];
   const rows = entries.map(e => [e.schlucht,e.lieferant,e.gramm,e.weisse,e.breite,e.material,e.meter,e.charge,e.anzahl,e.bemerkung,new Date(e.zeit).toLocaleString('de-DE')]);
   const csv = [header,...rows].map(r => r.map(c => '"'+String(c||'').replace(/"/g,'""')+'"').join(';')).join('\n');
   const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})),download:`Inventur_${new Date().toISOString().slice(0,10)}.csv`});
-  a.click(); showNotif('📊 CSV wird heruntergeladen');
+  a.click();
+  showNotif('📊 CSV wird heruntergeladen');
 }
-
 function exportPDF() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
   const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
   const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}</style></head><body><h2>📋 Papierrollen Inventur – Rheinische Post</h2><p>Datum: ${new Date().toLocaleDateString('de-DE')} · Einträge: ${entries.length} · Rollen: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table></body></html>`;
   const w = window.open('','_blank'); w.document.write(html); w.document.close(); w.print();
+}
+function exportEmailMitPDF() {
+  if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
+  const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
+  const total = entries.reduce((s,e)=>s+e.anzahl,0);
+  const datumStr = new Date().toLocaleDateString('de-DE');
+  // Schritt 1: PDF-Druckfenster öffnen
+  const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}.footer{margin-top:16px;font-size:10px;color:#999;}</style></head><body><h2>Papierrollen Inventur – Rheinische Post</h2><p>Datum: ${datumStr} &nbsp;·&nbsp; Einträge: ${entries.length} &nbsp;·&nbsp; Rollen gesamt: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table><div class="footer">Erstellt mit Papierrollen Inventur App · ${datumStr}</div></body></html>`;
+  const w = window.open('','_blank'); w.document.write(html); w.document.close();
+  setTimeout(() => {
+    w.print();
+    // Schritt 2: Nach kurzem Delay E-Mail öffnen
+    setTimeout(() => {
+      const subject = encodeURIComponent('Papierrollen Inventur ' + datumStr);
+      const body = encodeURIComponent(
+        'Hallo,\n\nbitte die angehängte PDF mit der Papierrollen-Inventur vom ' + datumStr + ' beachten.\n\n' +
+        'Zusammenfassung:\n' +
+        '• Rollen gesamt: ' + total + '\n' +
+        '• Einträge: ' + entries.length + '\n' +
+        '• Datum: ' + datumStr + '\n\n' +
+        '➡️ Bitte die soeben heruntergeladene/gedruckte PDF als Anhang hinzufügen.\n\nMit freundlichen Grüßen'
+      );
+      window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+      showNotif('📧 E-Mail geöffnet – PDF als Anhang hinzufügen');
+    }, 1500);
+  }, 500);
 }
 
 function exportEmail() {
@@ -373,12 +657,10 @@ function exportEmail() {
   sorted.forEach(e => { body += `${e.schlucht} | ${e.lieferant||''} | ${e.gramm||''} | ${e.breite||''} | ${e.material||''} | ${e.anzahl}\n`; });
   window.location.href = `mailto:?subject=${encodeURIComponent('Inventur '+new Date().toLocaleDateString('de-DE'))}&body=${encodeURIComponent(body)}`;
 }
-
 function saveSession() {
   const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([JSON.stringify({version:1,datum:new Date().toISOString(),entries},null,2)],{type:'application/json'})),download:`Inventur_${new Date().toISOString().slice(0,10)}.json`});
   a.click(); showNotif('💾 Sitzung gespeichert');
 }
-
 function loadSession(evt) {
   const file = evt.target.files[0]; if (!file) return;
   const r = new FileReader();
@@ -386,15 +668,15 @@ function loadSession(evt) {
   r.readAsText(file); evt.target.value='';
 }
 
+// ── UI HELPERS ────────────────────────────────────────
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   ['erfassen','liste','export'].forEach((n,i) => { if(n===name) document.querySelectorAll('.tab')[i].classList.add('active'); });
-  if (name==='liste') renderListe();
+  if (name==='liste')  renderListe();
   if (name==='export') updateExportInfo();
 }
-
 function showNotif(msg) {
   const old = document.querySelector('.notif'); if (old) old.remove();
   const n = document.createElement('div'); n.className='notif'; n.textContent=msg;
