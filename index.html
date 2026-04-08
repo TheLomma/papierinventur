@@ -115,7 +115,7 @@
 
 <div class="header">
   <h1>📋 Papierrollen Inventur</h1>
-  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.1 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
+  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.2 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
 
 <div id="autosaveBar" class="autosave-bar">💾 Autosave aktiv – wird alle 30 Sek. gespeichert</div>
@@ -130,11 +130,14 @@
 
   <div class="card">
     <div class="card-title">📍 Schlucht / Lagerbereich</div>
-    <div class="dd-wrapper">
+        <div class="dd-wrapper">
       <select class="dd-select" id="schluchtSelect" onchange="onSchluchtSelect()">
         <option value="">– Schlucht wählen –</option>
       </select>
       <span class="dd-arrow">▼</span>
+    </div>
+    <div class="dd-extra" id="schluchtFreiWrap">
+      <input type="text" id="schluchtFrei" placeholder="Andere Schlucht eingeben…">
     </div>
   </div>
 
@@ -143,12 +146,14 @@
     <div class="dd-wrapper">
       <select class="dd-select" id="lieferantSelect" onchange="onLieferantSelect()">
         <option value="">– Lieferant / Werk wählen –</option>
-        <option value="Schongau">Schongau</option>
-        <option value="Langerbrug">Langerbrug</option>
+        <option value="Eltmann">Eltmann</option>
         <option value="Golbey">Golbey</option>
         <option value="Hylte">Hylte</option>
-        <option value="Eltmann">Eltmann</option>
+        <option value="Kriebstein">Kriebstein</option>
+        <option value="Langerbrug">Langerbrug</option>
         <option value="Perlen">Perlen</option>
+        <option value="Schönfelder">Schönfelder</option>
+        <option value="Schongau">Schongau</option>
         <option value="__andere__">✏️ Andere…</option>
       </select>
       <span class="dd-arrow">▼</span>
@@ -298,16 +303,18 @@
 const SCHLUCHTEN = [1,2,3,4,5,6,100,7,8,9,10,11,12,13,14,101,15,16,17,18,19,20,21,22,102,23,24,25,26,27,28,29,30,103,31,32,33,34,35,36,37,38,99,39,40];
 
 const LIEFERANTEN = [
-  { name:'Schongau',    gramm:[55],     weisse:[80], breite:[700,1050,1400],  material:['20558011','20558013','20558015'], meter:[7000,7350] },
-  { name:'Langerbrug',  gramm:[49],     weisse:[59], breite:[700],            material:['20495915'],                      meter:[7000] },
+  { name:'Eltmann',     gramm:[43],     weisse:[59], breite:[1400],           material:['20435911'],                      meter:[7000] },
   { name:'Golbey',      gramm:[42],     weisse:[59], breite:[1050,1225,1400], material:['20425911','20425912','20425913'], meter:[7000,7350] },
   { name:'Hylte',       gramm:[43],     weisse:[59], breite:[1400],           material:['20435911'],                      meter:[7000] },
-  { name:'Eltmann',     gramm:[43],     weisse:[59], breite:[1400],           material:['20435911'],                      meter:[7000] },
+  { name:'Kriebstein',  gramm:[],       weisse:[],   breite:[],               material:[],                                meter:[] },
+  { name:'Langerbrug',  gramm:[49],     weisse:[59], breite:[700],            material:['20495915'],                      meter:[7000] },
   { name:'Perlen',      gramm:[42],     weisse:[59], breite:[1400],           material:['20425911'],                      meter:[7000] },
+  { name:'Schönfelder', gramm:[],       weisse:[],   breite:[],               material:[],                                meter:[] },
+  { name:'Schongau',    gramm:[55],     weisse:[80], breite:[700,1050,1400],  material:['20558011','20558013','20558015'], meter:[7000,7350] },
 ];
 
-const ALL_GRAMM     = [42,43,49,55,99];
-const ALL_WEISSE    = [59,80];
+const ALL_GRAMM     = [42, 42.5, 43, 49, 52, 55, 60, 120];
+const ALL_WEISSE    = [59, 72, 80];
 const ALL_BREITE    = [700,1050,1225,1400];
 const ALL_METER     = [6300,7000,7350];
 const ALL_MATERIAL  = ['20425911','20425912','20425913','20435911','20495915','20558011','20558013','20558015'];
@@ -344,21 +351,57 @@ function init() {
 function fillSchluchtDD() {
   const sel = document.getElementById('schluchtSelect');
   sel.innerHTML = '<option value="">– Schlucht wählen –</option>';
-  SCHLUCHTEN.forEach(s => {
+
+  // Kategorie: Zählung Lager West
+  const grpWest = document.createElement('optgroup');
+  grpWest.label = '── Zählung Lager West ──';
+  const SCHLUCHTEN_WEST = [1,2,3,4,5,6,100,7,8,9,10,11,12,13,14,101,15,16,17,18,19,20,21,22,102,23,24,25,26,27,28,29,30,103,31,32,33,34,35,36,37,38,99,39,40];
+  SCHLUCHTEN_WEST.forEach(s => {
     const hasData = entries.some(e => String(e.schlucht) === String(s));
     const opt = document.createElement('option');
     opt.value = String(s);
     opt.textContent = hasData ? s + ' ✓' : String(s);
     if (String(s) === String(selSchlucht)) opt.selected = true;
-    sel.appendChild(opt);
+    grpWest.appendChild(opt);
   });
+  sel.appendChild(grpWest);
+
+  // Kategorie: Zählung Lager Ost
+  const grpOst = document.createElement('optgroup');
+  grpOst.label = '── Zählung Lager Ost ──';
+  grpOst.id = 'grpLagerOst';
+  const SCHLUCHTEN_OST = [44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80];
+  SCHLUCHTEN_OST.forEach(s => {
+    const hasData = entries.some(e => String(e.schlucht) === String(s));
+    const opt = document.createElement('option');
+    opt.value = String(s);
+    opt.textContent = hasData ? s + ' ✓' : String(s);
+    if (String(s) === String(selSchlucht)) opt.selected = true;
+    grpOst.appendChild(opt);
+  });
+  sel.appendChild(grpOst);
+
+  // Option: Freie Eingabe
+  const optFrei = document.createElement('option');
+  optFrei.value = '__andere__';
+  optFrei.textContent = '✏️ Anderen Lagerort eingeben…';
+  sel.appendChild(optFrei);
+
   sel.className = 'dd-select' + (selSchlucht ? ' has-value' : '');
 }
 
 function onSchluchtSelect() {
   const v = document.getElementById('schluchtSelect').value;
-  selSchlucht = v ? Number(v) : null;
-  document.getElementById('schluchtSelect').className = 'dd-select' + (v ? ' has-value' : '');
+  const wrap = document.getElementById('schluchtFreiWrap');
+  if (v === '__andere__') {
+    wrap.classList.add('visible');
+    selSchlucht = null;
+    document.getElementById('schluchtSelect').className = 'dd-select';
+  } else {
+    wrap.classList.remove('visible');
+    selSchlucht = v ? v : null;
+    document.getElementById('schluchtSelect').className = 'dd-select' + (v ? ' has-value' : '');
+  }
 }
 
 // ── LIEFERANT DROPDOWN ────────────────────────────────
@@ -417,11 +460,11 @@ function optsByLieferant(field, fallback) {
   return l ? l[field] : fallback;
 }
 
-function fillGrammDD()    { fillDD('grammSelect',    optsByLieferant('gramm',    ALL_GRAMM),    selGramm,    true); }
-function fillWeisseDD()   { fillDD('weisseSelect',   optsByLieferant('weisse',   ALL_WEISSE),   selWeisse,   false); }
-function fillBreiteDD()   { fillDD('breiteSelect',   optsByLieferant('breite',   ALL_BREITE),   selBreite,   true); }
-function fillMeterDD()    { fillDD('meterSelect',    optsByLieferant('meter',    ALL_METER),    selMeter,    true); }
-function fillMaterialDD() { fillDD('materialSelect', optsByLieferant('material', ALL_MATERIAL), selMaterial, true); }
+function fillGrammDD()    { fillDD('grammSelect',    ALL_GRAMM,    selGramm,    true); }
+function fillWeisseDD()   { fillDD('weisseSelect',   ALL_WEISSE,   selWeisse,   false); }
+function fillBreiteDD()   { fillDD('breiteSelect',   ALL_BREITE,   selBreite,   true); }
+function fillMeterDD()    { fillDD('meterSelect',    ALL_METER,    selMeter,    true); }
+function fillMaterialDD() { fillDD('materialSelect', ALL_MATERIAL, selMaterial, true); }
 
 // ── DROPDOWN CHANGE HANDLERS ──────────────────────────
 function onGrammSelect() {
@@ -478,6 +521,12 @@ function getMaterial() { return document.getElementById('materialNr').value.trim
 
 // ── ADD / EDIT ENTRY ──────────────────────────────────
 function addEntry() {
+  // Freie Schlucht-Eingabe auslesen
+  if (document.getElementById('schluchtSelect').value === '__andere__') {
+    const freiVal = document.getElementById('schluchtFrei').value.trim();
+    if (!freiVal) { showNotif('⚠️ Bitte Lagerort eingeben'); return; }
+    selSchlucht = freiVal;
+  }
   if (!selSchlucht)          { showNotif('⚠️ Bitte Schlucht auswählen');  return; }
   const lieferant = getLieferantName();
   if (!lieferant)            { showNotif('⚠️ Bitte Lieferant angeben');   return; }
@@ -617,7 +666,7 @@ function editEntry(id) {
   selBreite    = e.breite   ? Number(e.breite)   : null;
   selMeter     = e.meter    ? Number(e.meter)    : null;
   selMaterial  = e.material || null;
-  const knownLieferant = LIEFERANTEN.find(l => l.name === e.lieferant);
+  const knownLieferant = LIEFERANTEN.includes(e.lieferant);
   const liefSel = document.getElementById('lieferantSelect');
   if (knownLieferant) {
     liefSel.value = e.lieferant;
@@ -662,18 +711,8 @@ function exportPDF() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
   const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
-  const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}</style></head><body><h2>📋 Papierrollen Inventur – Rheinische Post</h2><p>Datum: ${new Date().toLocaleDateString('de-DE')} · Einträge: ${entries.length} · Rollen: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table><div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <div class="confirm-icon">⚠️</div>
-    <div class="confirm-title">Bist du sicher?</div>
-    <div class="confirm-text">Alle erfassten Einträge werden <strong>unwiderruflich gelöscht</strong>!<br><br>Die gesamte Inventurliste wird zurückgesetzt und kann nicht wiederhergestellt werden.</div>
-    <div class="confirm-btns">
-      <button class="confirm-no" onclick="closeConfirm()">❌ Abbrechen</button>
-      <button class="confirm-yes" onclick="doReset()">🗑️ Ja, alles löschen</button>
-    </div>
-  </div>
-</div>
-</body></html>`;
+  const datum = new Date().toLocaleDateString('de-DE');
+  const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}.footer{margin-top:16px;font-size:10px;color:#999;}</style></head><body><h2>Papierrollen Inventur – RP Adlog GmbH</h2><p>Datum: ${datum} · Einträge: ${entries.length} · Rollen gesamt: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table><div class="footer">Erstellt mit Papierrollen Inventur App · ${datum}</div></body></html>`;
   const w = window.open('','_blank'); w.document.write(html); w.document.close(); w.print();
 }
 function exportEmailMitPDF() {
