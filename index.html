@@ -115,7 +115,7 @@
 
 <div class="header">
   <h1>📋 Papierrollen Inventur</h1>
-  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.3 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
+  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.4 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
 
 <div id="autosaveBar" class="autosave-bar">💾 Autosave aktiv – wird alle 30 Sek. gespeichert</div>
@@ -646,11 +646,64 @@ function editEntry(id) {
   editId = id;
   selSchlucht  = e.schlucht;
   selLieferant = e.lieferant;
-  selGramm     = e.gramm    ? Number(e.gramm)    : null;
-  selWeisse    = e.weisse   ? Number(e.weisse)   : null;
-  selBreite    = e.breite   ? Number(e.breite)   : null;
-  selMeter     = e.meter    ? Number(e.meter)    : null;
-  selMaterial  = e.material || null;
+  // Grammatur: bekannt oder frei?
+  if (e.gramm !== '' && e.gramm != null && ALL_GRAMM.map(String).includes(String(e.gramm))) {
+    selGramm = Number(e.gramm);
+    document.getElementById('grammFrei').value = '';
+    document.getElementById('grammFreiWrap').classList.remove('visible');
+  } else if (e.gramm !== '' && e.gramm != null) {
+    selGramm = null;
+    document.getElementById('grammFrei').value = e.gramm;
+    document.getElementById('grammFreiWrap').classList.add('visible');
+    document.getElementById('grammSelect').value = '__andere__';
+  } else {
+    selGramm = null;
+    document.getElementById('grammFrei').value = '';
+  }
+  // Weiße
+  selWeisse = e.weisse ? Number(e.weisse) : null;
+  // Breite: bekannt oder frei?
+  if (e.breite !== '' && e.breite != null && ALL_BREITE.map(String).includes(String(e.breite))) {
+    selBreite = Number(e.breite);
+    document.getElementById('breiteFrei').value = '';
+    document.getElementById('breiteFreiWrap').classList.remove('visible');
+  } else if (e.breite !== '' && e.breite != null) {
+    selBreite = null;
+    document.getElementById('breiteFrei').value = e.breite;
+    document.getElementById('breiteFreiWrap').classList.add('visible');
+    document.getElementById('breiteSelect').value = '__andere__';
+  } else {
+    selBreite = null;
+    document.getElementById('breiteFrei').value = '';
+  }
+  // Meter: bekannt oder frei?
+  if (e.meter !== '' && e.meter != null && ALL_METER.map(String).includes(String(e.meter))) {
+    selMeter = Number(e.meter);
+    document.getElementById('meterFrei').value = '';
+    document.getElementById('meterFreiWrap').classList.remove('visible');
+  } else if (e.meter !== '' && e.meter != null) {
+    selMeter = null;
+    document.getElementById('meterFrei').value = e.meter;
+    document.getElementById('meterFreiWrap').classList.add('visible');
+    document.getElementById('meterSelect').value = '__andere__';
+  } else {
+    selMeter = null;
+    document.getElementById('meterFrei').value = '';
+  }
+  // Material: bekannt oder frei?
+  if (e.material && ALL_MATERIAL.includes(e.material)) {
+    selMaterial = e.material;
+    document.getElementById('materialNr').value = '';
+    document.getElementById('materialFreiWrap').classList.remove('visible');
+  } else if (e.material) {
+    selMaterial = null;
+    document.getElementById('materialNr').value = e.material;
+    document.getElementById('materialFreiWrap').classList.add('visible');
+    document.getElementById('materialSelect').value = '__andere__';
+  } else {
+    selMaterial = null;
+    document.getElementById('materialNr').value = '';
+  }
   const knownLieferant = LIEFERANTEN.includes(e.lieferant);
   const liefSel = document.getElementById('lieferantSelect');
   if (knownLieferant) {
