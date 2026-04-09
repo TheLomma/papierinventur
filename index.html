@@ -115,7 +115,7 @@
 
 <div class="header">
   <h1>📋 Papierrollen Inventur</h1>
-  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.4 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
+  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.5 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
 
 <div id="autosaveBar" class="autosave-bar">💾 Autosave aktiv – wird alle 30 Sek. gespeichert</div>
@@ -446,7 +446,7 @@ function fillDD(id, options, currentVal, addAndere) {
 }
 
 function fillGrammDD()    { fillDD('grammSelect',    ALL_GRAMM,    selGramm,    true); }
-function fillWeisseDD()   { fillDD('weisseSelect',   ALL_WEISSE,   selWeisse,   false); }
+function fillWeisseDD()   { fillDD('weisseSelect',   ALL_WEISSE,   selWeisse,   true); }
 function fillBreiteDD()   { fillDD('breiteSelect',   ALL_BREITE,   selBreite,   true); }
 function fillMeterDD()    { fillDD('meterSelect',    ALL_METER,    selMeter,    true); }
 function fillMaterialDD() { fillDD('materialSelect', ALL_MATERIAL, selMaterial, true); }
@@ -461,8 +461,15 @@ function onGrammSelect() {
 }
 function onWeisseSelect() {
   const v = document.getElementById('weisseSelect').value;
-  selWeisse = v ? Number(v) : null;
-  document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse ? ' has-value' : '');
+  if (v === '__andere__') {
+    document.getElementById('weisseFreiWrap').classList.add('visible');
+    selWeisse = null;
+    document.getElementById('weisseSelect').className = 'dd-select';
+  } else {
+    document.getElementById('weisseFreiWrap').classList.remove('visible');
+    selWeisse = v ? Number(v) : null;
+    document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse ? ' has-value' : '');
+  }
 }
 function onBreiteSelect() {
   const v = document.getElementById('breiteSelect').value;
@@ -499,10 +506,11 @@ function getLieferantName() {
   if (v === '__andere__') return document.getElementById('lieferantFrei').value.trim();
   return v || '';
 }
-function getGramm()    { return document.getElementById('grammFrei').value    || selGramm    || ''; }
-function getBreite()   { return document.getElementById('breiteFrei').value   || selBreite   || ''; }
-function getMeter()    { return document.getElementById('meterFrei').value     || selMeter    || ''; }
-function getMaterial() { return document.getElementById('materialNr').value.trim() || selMaterial || ''; }
+function getWeisse()   { const f = document.getElementById('weisseFrei').value.trim();    return f !== '' ? f : (selWeisse   != null ? selWeisse   : ''); }
+function getGramm()    { const f = document.getElementById('grammFrei').value.trim();    return f !== '' ? f : (selGramm    != null ? selGramm    : ''); }
+function getBreite()   { const f = document.getElementById('breiteFrei').value.trim();   return f !== '' ? f : (selBreite   != null ? selBreite   : ''); }
+function getMeter()    { const f = document.getElementById('meterFrei').value.trim();     return f !== '' ? f : (selMeter    != null ? selMeter    : ''); }
+function getMaterial() { const f = document.getElementById('materialNr').value.trim();   return f !== '' ? f : (selMaterial != null ? selMaterial : ''); }
 
 // ── ADD / EDIT ENTRY ──────────────────────────────────
 function addEntry() {
@@ -523,7 +531,7 @@ function addEntry() {
     schlucht:  selSchlucht,
     lieferant: lieferant,
     gramm:     getGramm(),
-    weisse:    selWeisse || '',
+    weisse:    getWeisse(),
     breite:    getBreite(),
     material:  getMaterial(),
     meter:     getMeter(),
@@ -599,7 +607,7 @@ function renderListe() {
     cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>Noch keine Einträge</p></div>';
     return;
   }
-  const sorted = [...entries].sort((a,b) => a.schlucht - b.schlucht);
+  const sorted = [...entries].sort((a,b) => { const na = parseFloat(a.schlucht); const nb = parseFloat(b.schlucht); if (!isNaN(na) && !isNaN(nb)) return na - nb; return String(a.schlucht).localeCompare(String(b.schlucht)); });
   cont.innerHTML = sorted.map(e => `
     <div class="entry-card">
       <div class="entry-card-header">
@@ -660,8 +668,20 @@ function editEntry(id) {
     selGramm = null;
     document.getElementById('grammFrei').value = '';
   }
-  // Weiße
-  selWeisse = e.weisse ? Number(e.weisse) : null;
+  // Weiße: bekannt oder frei?
+  if (e.weisse !== '' && e.weisse != null && ALL_WEISSE.map(String).includes(String(e.weisse))) {
+    selWeisse = Number(e.weisse);
+    document.getElementById('weisseFrei').value = '';
+    document.getElementById('weisseFreiWrap').classList.remove('visible');
+  } else if (e.weisse !== '' && e.weisse != null) {
+    selWeisse = null;
+    document.getElementById('weisseFrei').value = e.weisse;
+    document.getElementById('weisseFreiWrap').classList.add('visible');
+    document.getElementById('weisseSelect').value = '__andere__';
+  } else {
+    selWeisse = null;
+    document.getElementById('weisseFrei').value = '';
+  }
   // Breite: bekannt oder frei?
   if (e.breite !== '' && e.breite != null && ALL_BREITE.map(String).includes(String(e.breite))) {
     selBreite = Number(e.breite);
@@ -720,6 +740,18 @@ function editEntry(id) {
   document.getElementById('anzahl').value    = e.anzahl;
   document.getElementById('addBtn').textContent = '💾 Eintrag aktualisieren';
   fillSchluchtDD(); fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD();
+  // Schlucht im Dropdown setzen
+  const schluchtSel = document.getElementById('schluchtSelect');
+  const knownSchlucht = [...document.querySelectorAll('#schluchtSelect option')].some(o => o.value === String(e.schlucht));
+  if (knownSchlucht) {
+    schluchtSel.value = String(e.schlucht);
+    schluchtSel.className = 'dd-select has-value';
+    document.getElementById('schluchtFreiWrap').classList.remove('visible');
+  } else {
+    schluchtSel.value = '__andere__';
+    document.getElementById('schluchtFreiWrap').classList.add('visible');
+    document.getElementById('schluchtFrei').value = e.schlucht;
+  }
   showPage('erfassen');
   window.scrollTo(0,0);
   showNotif('✏️ Bearbeiten-Modus aktiv');
@@ -814,6 +846,10 @@ function doReset() {
   document.getElementById('bemerkung').value = '';
   document.getElementById('anzahl').value = 1;
   document.getElementById('addBtn').textContent = '✅ Eintrag hinzufügen';
+  // Alle Freifelder leeren
+  ['grammFrei','breiteFrei','meterFrei','materialNr','weisseFrei','schluchtFrei','lieferantFrei'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['grammFreiWrap','breiteFreiWrap','meterFreiWrap','materialFreiWrap','weisseFreiWrap','schluchtFreiWrap','lieferantFreiWrap'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('visible'); });
+  ['grammSelect','breiteSelect','meterSelect','materialSelect','weisseSelect','schluchtSelect'].forEach(id => { const el = document.getElementById(id); if(el){ el.value=''; el.className='dd-select'; } });
   fillSchluchtDD(); fillGrammDD(); fillWeisseDD(); fillBreiteDD(); fillMeterDD(); fillMaterialDD();
   renderListe(); updateBadge(); updateExportInfo();
   updateAutosaveBar('idle');
