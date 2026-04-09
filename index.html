@@ -115,10 +115,22 @@
 
 <div class="header">
   <h1>📋 Papierrollen Inventur</h1>
-  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.5 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
+  <p>RP Adlog GmbH &nbsp;&middot;&nbsp; v. 1.6 &nbsp;&middot;&nbsp; <span id="datum"></span></p>
 </div>
 
 <div id="autosaveBar" class="autosave-bar">💾 Autosave aktiv – wird alle 30 Sek. gespeichert</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Alle Daten löschen?</div>
+    <div class="confirm-text">Alle Einträge werden unwiderruflich gelöscht und eine neue Erfassung gestartet.</div>
+    <div class="confirm-btns">
+      <button class="confirm-yes" onclick="doReset()">Ja, löschen</button>
+      <button class="confirm-no" onclick="closeConfirm()">Abbrechen</button>
+    </div>
+  </div>
+</div>
 <div class="tabs">
   <div class="tab active" onclick="showPage('erfassen')"><span class="tab-icon">➕</span>Erfassen</div>
   <div class="tab" onclick="showPage('liste')"><span class="tab-icon">📋</span>Liste <span class="badge" id="listeBadge">0</span></div>
@@ -186,6 +198,9 @@
           <option value="">– Weiße wählen –</option>
         </select>
         <span class="dd-arrow">▼</span>
+      </div>
+      <div class="dd-extra" id="weisseFreiWrap">
+        <input type="number" id="weisseFrei" placeholder="Andere Weiße / Helligkeit…">
       </div>
     </div>
 
@@ -455,9 +470,8 @@ function fillMaterialDD() { fillDD('materialSelect', ALL_MATERIAL, selMaterial, 
 function onGrammSelect() {
   const v = document.getElementById('grammSelect').value;
   const wrap = document.getElementById('grammFreiWrap');
-  if (v === '__andere__') { wrap.classList.add('visible'); selGramm = null; }
-  else { wrap.classList.remove('visible'); selGramm = v ? Number(v) : null; }
-  document.getElementById('grammSelect').className = 'dd-select' + (selGramm ? ' has-value' : '');
+  if (v === '__andere__') { wrap.classList.add('visible'); selGramm = null; document.getElementById('grammSelect').className = 'dd-select'; }
+  else { wrap.classList.remove('visible'); selGramm = v !== '' ? Number(v) : null; document.getElementById('grammSelect').className = 'dd-select' + (selGramm != null ? ' has-value' : ''); }
 }
 function onWeisseSelect() {
   const v = document.getElementById('weisseSelect').value;
@@ -467,30 +481,27 @@ function onWeisseSelect() {
     document.getElementById('weisseSelect').className = 'dd-select';
   } else {
     document.getElementById('weisseFreiWrap').classList.remove('visible');
-    selWeisse = v ? Number(v) : null;
-    document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse ? ' has-value' : '');
+    selWeisse = v !== '' ? Number(v) : null;
+    document.getElementById('weisseSelect').className = 'dd-select' + (selWeisse != null ? ' has-value' : '');
   }
 }
 function onBreiteSelect() {
   const v = document.getElementById('breiteSelect').value;
   const wrap = document.getElementById('breiteFreiWrap');
-  if (v === '__andere__') { wrap.classList.add('visible'); selBreite = null; }
-  else { wrap.classList.remove('visible'); selBreite = v ? Number(v) : null; }
-  document.getElementById('breiteSelect').className = 'dd-select' + (selBreite ? ' has-value' : '');
+  if (v === '__andere__') { wrap.classList.add('visible'); selBreite = null; document.getElementById('breiteSelect').className = 'dd-select'; }
+  else { wrap.classList.remove('visible'); selBreite = v !== '' ? Number(v) : null; document.getElementById('breiteSelect').className = 'dd-select' + (selBreite != null ? ' has-value' : ''); }
 }
 function onMeterSelect() {
   const v = document.getElementById('meterSelect').value;
   const wrap = document.getElementById('meterFreiWrap');
-  if (v === '__andere__') { wrap.classList.add('visible'); selMeter = null; }
-  else { wrap.classList.remove('visible'); selMeter = v ? Number(v) : null; }
-  document.getElementById('meterSelect').className = 'dd-select' + (selMeter ? ' has-value' : '');
+  if (v === '__andere__') { wrap.classList.add('visible'); selMeter = null; document.getElementById('meterSelect').className = 'dd-select'; }
+  else { wrap.classList.remove('visible'); selMeter = v !== '' ? Number(v) : null; document.getElementById('meterSelect').className = 'dd-select' + (selMeter != null ? ' has-value' : ''); }
 }
 function onMaterialSelect() {
   const v = document.getElementById('materialSelect').value;
   const wrap = document.getElementById('materialFreiWrap');
-  if (v === '__andere__') { wrap.classList.add('visible'); selMaterial = null; }
-  else { wrap.classList.remove('visible'); selMaterial = v || null; document.getElementById('materialNr').value = ''; }
-  document.getElementById('materialSelect').className = 'dd-select' + (selMaterial ? ' has-value' : '');
+  if (v === '__andere__') { wrap.classList.add('visible'); selMaterial = null; document.getElementById('materialSelect').className = 'dd-select'; }
+  else { wrap.classList.remove('visible'); selMaterial = v || null; document.getElementById('materialNr').value = ''; document.getElementById('materialSelect').className = 'dd-select' + (selMaterial ? ' has-value' : ''); }
 }
 
 // ── COUNTER ───────────────────────────────────────────
@@ -636,7 +647,7 @@ function renderListe() {
 }
 
 function deleteEntry(id) {
-  if (!confirm('Eintrag wirklich löschen?')) return;
+  if (!window.confirm('Eintrag wirklich löschen?')) return;
   entries = entries.filter(e => e.id !== id);
   save(); fillSchluchtDD(); renderListe(); updateBadge(); updateExportInfo();
   showNotif('🗑️ Gelöscht');
@@ -764,7 +775,7 @@ function updateExportInfo() {
   document.getElementById('infoDate').textContent      = new Date().toLocaleDateString('de-DE');
   document.getElementById('infoRollen').textContent    = total;
   document.getElementById('infoEintraege').textContent = entries.length;
-  document.getElementById('infoSchluchten').textContent= [...schlSet].sort((a,b)=>a-b).join(', ') || '-';
+  document.getElementById('infoSchluchten').textContent= [...schlSet].sort((a,b)=>{ const na=parseFloat(a),nb=parseFloat(b); return (!isNaN(na)&&!isNaN(nb))?na-nb:String(a).localeCompare(String(b)); }).join(', ') || '-';
 }
 
 // ── EXPORT ───────────────────────────────────────────
@@ -779,7 +790,7 @@ function exportCSV() {
 }
 function exportPDF() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
-  const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
+  const sorted = [...entries].sort((a,b) => { const na=parseFloat(a.schlucht),nb=parseFloat(b.schlucht); return (!isNaN(na)&&!isNaN(nb)) ? na-nb : String(a.schlucht).localeCompare(String(b.schlucht)); });
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
   const datum = new Date().toLocaleDateString('de-DE');
   const html = `<html><head><meta charset="UTF-8"><title>Inventur</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}h2{color:#003366;}table{width:100%;border-collapse:collapse;}th{background:#003366;color:white;padding:7px;}td{padding:6px;border:1px solid #ddd;}tr:nth-child(even) td{background:#f5f8ff;}tfoot td{background:#003366;color:white;font-weight:bold;padding:7px;}.footer{margin-top:16px;font-size:10px;color:#999;}</style></head><body><h2>Papierrollen Inventur – RP Adlog GmbH</h2><p>Datum: ${datum} · Einträge: ${entries.length} · Rollen gesamt: ${total}</p><table><tr><th>Schlucht</th><th>Lieferant</th><th>g/m²</th><th>Weiße</th><th>Breite</th><th>Material-Nr.</th><th>Meter</th><th>Charge</th><th>Anzahl</th><th>Bemerkung</th></tr>${sorted.map(e=>`<tr><td><b>${e.schlucht}</b></td><td>${e.lieferant||''}</td><td>${e.gramm||''}</td><td>${e.weisse||''}</td><td>${e.breite||''}</td><td>${e.material||''}</td><td>${e.meter||''}</td><td>${e.charge||''}</td><td><b>${e.anzahl}</b></td><td>${e.bemerkung||''}</td></tr>`).join('')}<tfoot><tr><td colspan="8"><b>GESAMT</b></td><td><b>${total}</b></td><td></td></tr></tfoot></table><div class="footer">Erstellt mit Papierrollen Inventur App · ${datum}</div></body></html>`;
@@ -787,7 +798,7 @@ function exportPDF() {
 }
 function exportEmailMitPDF() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
-  const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
+  const sorted = [...entries].sort((a,b) => { const na=parseFloat(a.schlucht),nb=parseFloat(b.schlucht); return (!isNaN(na)&&!isNaN(nb)) ? na-nb : String(a.schlucht).localeCompare(String(b.schlucht)); });
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
   const datumStr = new Date().toLocaleDateString('de-DE');
   // Schritt 1: PDF-Druckfenster öffnen
@@ -814,7 +825,7 @@ function exportEmailMitPDF() {
 
 function exportEmail() {
   if (!entries.length) { showNotif('⚠️ Keine Daten vorhanden'); return; }
-  const sorted = [...entries].sort((a,b)=>a.schlucht-b.schlucht);
+  const sorted = [...entries].sort((a,b) => { const na=parseFloat(a.schlucht),nb=parseFloat(b.schlucht); return (!isNaN(na)&&!isNaN(nb)) ? na-nb : String(a.schlucht).localeCompare(String(b.schlucht)); });
   const total = entries.reduce((s,e)=>s+e.anzahl,0);
   let body = `Papierrollen Inventur\nDatum: ${new Date().toLocaleDateString('de-DE')}\nRollen gesamt: ${total}\n\nSchlucht | Lieferant | Gramm | Breite | Material | Anzahl\n${'─'.repeat(60)}\n`;
   sorted.forEach(e => { body += `${e.schlucht} | ${e.lieferant||''} | ${e.gramm||''} | ${e.breite||''} | ${e.material||''} | ${e.anzahl}\n`; });
